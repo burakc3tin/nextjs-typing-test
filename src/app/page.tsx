@@ -159,14 +159,14 @@ const Home: React.FC = () => {
           <input placeholder='yazmaya başlayın...' className='speedInput' type="text" value={inputValue} onChange={handleInputChange} onKeyDown={handleKeyPress} />
     
           <div className='myTable'>
-  <table style={{ width: '270px', borderCollapse: 'collapse',overflow:'hidden' }}>
+  <table style={{ minHeight:'300px',maxHeight:'300px',width: '270px', borderCollapse: 'collapse',overflow:'hidden' }}>
   <tbody>
     <tr>
-      <td style={{ backgroundColor: 'white', padding: '12px',   textAlign: 'center' }}>Doğru Kelime Sayısı:</td>
+      <td style={{ backgroundColor: 'white', padding: '12px',   textAlign: 'center' }}>Doğru Kelime:</td>
       <td style={{ backgroundColor: 'white', fontWeight:'bold',color:'green', padding: '12px', textAlign: 'center' }}>{correctCount}</td>
     </tr>
     <tr>
-      <td style={{ backgroundColor: '#f2f2f2', padding: '12px',  textAlign: 'center' }}>Yanlış Kelime Sayısı:</td>
+      <td style={{ backgroundColor: '#f2f2f2', padding: '12px',  textAlign: 'center' }}>Yanlış Kelime:</td>
       <td style={{ backgroundColor: '#f2f2f2', padding: '12px', fontWeight:'bold',color:'red', textAlign: 'center' }}>{incorrectCount}</td>
     </tr>
     <tr>
