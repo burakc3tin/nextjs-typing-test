@@ -1,113 +1,206 @@
-import Image from 'next/image'
+"use client";
+import React, { useState, useEffect } from 'react';
+import words from './words';
+import './globals.css';
+import Head from 'next/head';
 
-export default function Home() {
+const Home: React.FC = () => {
+  const [inputValue, setInputValue] = useState('');
+  const [wordList, setWordList] = useState<string[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [incorrectCount, setIncorrectCount] = useState(0);
+  const [totalKeystrokes, setTotalKeystrokes] = useState(0);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(60);
+
+  // const wordsPerMinute = Math.round((correctCount + incorrectCount) / ((60 - timeLeft) / 60));
+  const [wordsPerMinute, setWordsPerMinute] = useState(0);
+  useEffect(() => {
+    const calculateWordsPerMinute = () => {
+      return Math.round((correctCount + incorrectCount) / ((60 - timeLeft) / 60));
+    };
+  
+    setWordsPerMinute(calculateWordsPerMinute());
+  }, [correctCount, incorrectCount, timeLeft]);
+ 
+  const [changeStartIndex,setChangeStartIndex] = useState(10);
+ const [changeEndIndex,setChangeEndIndex] = useState(20);
+
+   
+  useEffect(() => {
+    generateWordList();
+  }, []);
+
+  useEffect(() => {
+    if (inputValue.length === 1) {
+      setStartTime(Date.now());
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime === 0) {
+            clearInterval(timer);
+            endTest();
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [inputValue]);
+
+  useEffect(() => {
+    if (endTime !== 0) {
+      const calculateWordsPerMinute = () => {
+        return Math.round((correctCount + incorrectCount) / ((60 - timeLeft) / 60));
+      };
+  
+      setWordsPerMinute(calculateWordsPerMinute());
+    }
+  }, [endTime, correctCount, incorrectCount, timeLeft]);
+
+  const generateWordList = () => {
+    
+    const wordsPerPage = 10;
+    const startIndex = Math.floor(currentWordIndex / wordsPerPage) * wordsPerPage;
+    const endIndex = startIndex + wordsPerPage;
+    const wordSubset = words.slice(startIndex, endIndex);
+    setWordList(wordSubset);
+  };
+  
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    if (startTime === 0) {
+      setStartTime(Date.now());
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime === 0) {
+            clearInterval(timer);
+            endTest();
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === ' ') {
+      e.preventDefault();
+      checkWord();
+    }
+    setTotalKeystrokes((prevKeystrokes) => prevKeystrokes + 1);
+  };
+
+  const checkWord = () => {
+    const currentWord = wordList[currentWordIndex];
+    if (inputValue.trim().toLowerCase() === currentWord.toLowerCase()) {
+      setCorrectCount((prevCorrectCount) => prevCorrectCount + 1);
+    } else {
+      setIncorrectCount((prevIncorrectCount) => prevIncorrectCount + 1);
+    }
+    setInputValue('');
+
+    if (currentWordIndex === wordList.length - 1) {
+
+      const wordSubset = words.slice(changeStartIndex, changeEndIndex);
+      setWordList(wordSubset);
+      setChangeStartIndex((prevStartIndex) => prevStartIndex + 10);
+      setChangeEndIndex((prevStartIndex) => prevStartIndex + 10);
+      setCurrentWordIndex(0);
+      
+    } else {
+      setCurrentWordIndex((prevIndex) => prevIndex + 1);
+    }
+  };
+
+  const endTest = () => {
+    setEndTime(Date.now());
+  };
+
+  const restartTest = () => {
+    setCorrectCount(0);
+    setIncorrectCount(0);
+    setTotalKeystrokes(0);
+    setStartTime(0);
+    setEndTime(0);
+    setTimeLeft(60);
+    generateWordList();
+    setCurrentWordIndex(0); // İlk kelimeye geçiş yapılıyor
+    setInputValue(''); // Input değerini sıfırlıyoruz
+  };
+  
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div  >
+          <div>
+      <Head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com"  />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+      </Head>
+      {/* Sayfa içeriği */}
+    </div>
+      {endTime === 0 ? (
+        <div className='body'>
+      <h1>Klavye Yazma Testi</h1>
+          <p className='kalanSure'>Kalan Süre: <span style={{fontWeight:'bold'}}>{timeLeft}</span> saniye</p>
+          <div className='wordsContainer'>
+          {wordList.map((word, index) => (
+            <span key={index}>
+              {index === currentWordIndex && <strong>{word}</strong>}
+              {index !== currentWordIndex && word}
+              &nbsp;
+            </span>
+          ))}
+          </div>
+          <input placeholder='yazmaya başlayın...' className='speedInput' type="text" value={inputValue} onChange={handleInputChange} onKeyDown={handleKeyPress} />
+    
+          <div className='myTable'>
+  <table style={{ width: '270px', borderCollapse: 'collapse',overflow:'hidden' }}>
+  <tbody>
+    <tr>
+      <td style={{ backgroundColor: 'white', padding: '12px',   textAlign: 'center' }}>Doğru Kelime Sayısı:</td>
+      <td style={{ backgroundColor: 'white', fontWeight:'bold',color:'green', padding: '12px', textAlign: 'center' }}>{correctCount}</td>
+    </tr>
+    <tr>
+      <td style={{ backgroundColor: '#f2f2f2', padding: '12px',  textAlign: 'center' }}>Yanlış Kelime Sayısı:</td>
+      <td style={{ backgroundColor: '#f2f2f2', padding: '12px', fontWeight:'bold',color:'red', textAlign: 'center' }}>{incorrectCount}</td>
+    </tr>
+    <tr>
+      <td style={{ backgroundColor: 'white', padding: '12px',   textAlign: 'center' }}>Toplam Tuş Vuruşu:</td>
+      <td style={{ backgroundColor: 'white', padding: '12px',fontWeight:'bold',color:'black',  textAlign: 'center' }}>{totalKeystrokes}</td>
+    </tr>
+    <tr>
+      <td style={{ backgroundColor: '#f2f2f2', padding: '12px',   textAlign: 'center' }}>Hız:</td>
+      <td style={{ backgroundColor: '#f2f2f2', padding: '12px', fontWeight:'bold',color:'black', textAlign: 'center' }}>{isNaN(wordsPerMinute) ? 0 : wordsPerMinute} kelime/dakika</td>
+    </tr>
+  </tbody>
+</table></div>
+
+
+
+
         </div>
-      </div>
+      ) : (
+        <div className='finishBody'>
+          <h1>Test Tamamlandı!</h1>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+          <div className='resultTable'>
+          <p style={{color:'purple',fontWeight:'bold'}}>Süre: 60 saniye</p>
+          <p style={{color:'green',fontWeight:'bold'}}>Doğru Kelime Sayısı: {correctCount}</p>
+          <p style={{color:'red',fontWeight:'bold'}}>Yanlış Kelime Sayısı: {incorrectCount}</p>
+          <p style={{color:'black',fontWeight:'bold'}}>Toplam Tuş Vuruşu: {totalKeystrokes}</p>
+          <p style={{color:'gray',fontWeight:'bold'}}>Hız: {wordsPerMinute} kelime/dakika</p>
+          </div>
+          <button className='restartButton' onClick={restartTest}>Tekrar Dene</button>
+        </div>
+      )}
+          <footer className="footer">Burak Çetin</footer>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
-}
+    </div>
+  );
+};
+export default Home;         
